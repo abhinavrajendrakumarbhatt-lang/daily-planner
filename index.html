@@ -1,0 +1,795 @@
+<title>Daily Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-alt: #f5f5f4;
+    --border: #e7e5e4;
+    --fg: #1c1917;
+    --fg-muted: #78716c;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --urgent: #dc2626;
+    --urgent-soft: #fee2e2;
+    --waiting: #d97706;
+    --waiting-soft: #fef3c7;
+    --done: #16a34a;
+    --done-soft: #dcfce7;
+    --slack-accent: #611f69;
+    --slack-soft: #f3e8f5;
+    --email-accent: #0b815a;
+    --email-soft: #e6f4ee;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0a09;
+      --surface: #1c1917;
+      --surface-alt: #292524;
+      --border: #44403c;
+      --fg: #fafaf9;
+      --fg-muted: #a8a29e;
+      --accent: #60a5fa;
+      --accent-soft: #1e3a5f;
+      --urgent: #f87171;
+      --urgent-soft: #451a1a;
+      --waiting: #fbbf24;
+      --waiting-soft: #451a03;
+      --done: #4ade80;
+      --done-soft: #14532d;
+      --slack-accent: #c084d8;
+      --slack-soft: #2d1a33;
+      --email-accent: #34d399;
+      --email-soft: #0d2818;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0a09;
+    --surface: #1c1917;
+    --surface-alt: #292524;
+    --border: #44403c;
+    --fg: #fafaf9;
+    --fg-muted: #a8a29e;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a5f;
+    --urgent: #f87171;
+    --urgent-soft: #451a1a;
+    --waiting: #fbbf24;
+    --waiting-soft: #451a03;
+    --done: #4ade80;
+    --done-soft: #14532d;
+    --slack-accent: #c084d8;
+    --slack-soft: #2d1a33;
+    --email-accent: #34d399;
+    --email-soft: #0d2818;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+    margin: 0;
+    line-height: 1.5;
+  }
+  * { box-sizing: border-box; margin: 0; }
+
+  .page-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .main-col { flex: 1; min-width: 0; }
+  .sidebar-col { width: 320px; flex-shrink: 0; position: sticky; top: 16px; }
+  @media (max-width: 800px) {
+    .page-layout { flex-direction: column; }
+    .sidebar-col { width: 100%; position: static; order: -1; }
+  }
+
+  .header { padding: 28px 0 20px; display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; max-width: 1100px; margin: 0 auto; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+  .header h1 span { color: var(--accent); }
+  .header .date { font-size: 13px; color: var(--fg-muted); font-weight: 500; font-family: var(--font-mono); }
+
+  /* Budget */
+  .budget { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+  .budget-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .budget-item { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  .budget-label { color: var(--fg-muted); }
+  .budget-result { font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--accent); }
+
+  .stepper { display: flex; align-items: center; }
+  .stepper-btn {
+    width: 28px; height: 28px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--fg);
+    font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.12s, border-color 0.12s; line-height: 1;
+  }
+  .stepper-btn:first-child { border-radius: 6px 0 0 6px; }
+  .stepper-btn:last-child { border-radius: 0 6px 6px 0; }
+  .stepper-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .stepper-val {
+    width: 40px; height: 28px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); border-left: none; border-right: none;
+    background: var(--surface); color: var(--fg); font-family: var(--font-mono); font-size: 13px; text-align: center; font-weight: 600;
+  }
+  .stepper-val:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .budget-bar-track { height: 8px; background: var(--surface-alt); border-radius: 4px; overflow: hidden; }
+  .budget-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
+  .budget-bar-fill.over { background: var(--urgent); }
+  .budget-summary { display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+  /* Sections */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 8px; }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .section-count { font-size: 11px; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+
+  /* Tasks */
+  .task-list { min-height: 40px; }
+  .task {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .task:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .task.today-active { border-left: 3px solid var(--accent); }
+  .task.is-done { opacity: 0.45; }
+  .task.sortable-ghost { opacity: 0.4; background: var(--accent-soft); }
+  .task.sortable-chosen { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+
+  .drag-handle { cursor: grab; color: var(--fg-muted); font-size: 14px; user-select: none; padding: 2px; flex-shrink: 0; letter-spacing: -1px; }
+  .drag-handle:active { cursor: grabbing; }
+
+  .task-check {
+    width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+  }
+  .task-check:hover { border-color: var(--done); }
+  .task-check.checked { border-color: var(--done); background: var(--done); }
+  .task-check.checked::after { content: '\2713'; color: white; font-size: 11px; font-weight: 700; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .initiative-tag {
+    font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px;
+    background: var(--accent-soft); color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  }
+
+  .task-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .duration-select {
+    padding: 2px 4px; border: 1px solid var(--border); border-radius: 5px;
+    background: var(--surface-alt); color: var(--fg); font-family: var(--font-mono); font-size: 11px;
+    cursor: pointer; appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2378716c'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 4px center; padding-right: 14px;
+  }
+  .duration-select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .time-slot {
+    font-size: 10px; color: var(--fg-muted); font-family: var(--font-mono);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+
+  .icon-btn {
+    width: 26px; height: 26px; border: none; background: none; color: var(--fg-muted);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    border-radius: 5px; font-size: 14px; transition: all 0.12s; flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--surface-alt); color: var(--accent); }
+  .icon-btn.danger:hover { color: var(--urgent); }
+  .icon-btn.cal-btn { font-size: 13px; }
+  .icon-btn.cal-btn:hover { background: var(--accent-soft); }
+
+  .delete-btn { opacity: 0; transition: opacity 0.12s; }
+  .task:hover .delete-btn { opacity: 1; }
+
+  /* Block all button */
+  .block-all-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .block-all-btn {
+    padding: 5px 12px; border: 1px solid var(--border); border-radius: 7px;
+    background: var(--surface); color: var(--fg-muted); font-family: var(--font-body);
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.12s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .block-all-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  /* Add task */
+  .add-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .add-dest {
+    display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; flex-shrink: 0;
+  }
+  .add-dest button {
+    padding: 6px 10px; border: none; background: var(--surface-alt); color: var(--fg-muted);
+    font-family: var(--font-body); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .add-dest button.active { background: var(--accent); color: white; }
+  .add-dest button:not(.active):hover { background: var(--border); }
+  .add-row input, .add-row select {
+    padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--fg); font-family: var(--font-body); font-size: 13px;
+  }
+  .add-row input { flex: 1; min-width: 140px; }
+  .add-row select { min-width: 110px; }
+  .add-row input:focus, .add-row select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .add-btn {
+    padding: 7px 12px; background: var(--accent); color: white; border: none; border-radius: 8px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .add-btn:hover { opacity: 0.9; }
+
+  /* Initiative manager panel */
+  .init-mgr-btn { font-size: 15px; }
+  .init-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; margin-bottom: 10px; display: none;
+  }
+  .init-panel.open { display: block; }
+  .init-panel-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .init-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .init-chip {
+    display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px;
+    background: var(--surface-alt); border: 1px solid var(--border); font-size: 12px; font-weight: 500;
+  }
+  .init-chip button {
+    background: none; border: none; color: var(--fg-muted); cursor: pointer; font-size: 13px;
+    padding: 0; line-height: 1; display: flex; align-items: center;
+  }
+  .init-chip button:hover { color: var(--urgent); }
+  .init-add-row { display: flex; gap: 6px; }
+  .init-add-row input {
+    flex: 1; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface-alt); color: var(--fg); font-family: var(--font-body); font-size: 12px;
+  }
+  .init-add-row input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .init-add-row button {
+    padding: 5px 10px; background: var(--accent); color: white; border: none; border-radius: 6px;
+    font-family: var(--font-body); font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+
+  .empty-state { text-align: center; padding: 24px 16px; color: var(--fg-muted); font-size: 13px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* Sidebar */
+  .sidebar-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; margin-bottom: 16px;
+  }
+  .sidebar-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+  }
+  .sidebar-title {
+    font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+  }
+  .reply-badge {
+    font-size: 10px; font-weight: 700; background: var(--urgent); color: white;
+    border-radius: 10px; padding: 1px 7px; font-variant-numeric: tabular-nums;
+  }
+
+  .reply-card {
+    padding: 10px; border-radius: 8px; margin-bottom: 6px;
+    border-left: 3px solid var(--slack-accent); background: var(--surface-alt);
+    position: relative; transition: background 0.12s;
+  }
+  .reply-card:hover { background: var(--border); }
+  .reply-card.email-source { border-left-color: var(--email-accent); }
+  .reply-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+  .reply-sender { font-size: 12px; font-weight: 700; }
+  .reply-time { font-size: 10px; color: var(--fg-muted); font-family: var(--font-mono); }
+  .reply-preview {
+    font-size: 12px; color: var(--fg-muted); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reply-actions {
+    display: flex; align-items: center; gap: 4px; margin-top: 6px;
+  }
+  .reply-link {
+    font-size: 11px; font-weight: 600; color: var(--accent); text-decoration: none;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .reply-link:hover { text-decoration: underline; }
+  .reply-dismiss {
+    position: absolute; top: 6px; right: 6px;
+    background: none; border: none; color: var(--fg-muted); cursor: pointer;
+    font-size: 14px; line-height: 1; padding: 2px; border-radius: 4px; opacity: 0; transition: opacity 0.12s;
+  }
+  .reply-card:hover .reply-dismiss { opacity: 1; }
+  .reply-dismiss:hover { color: var(--urgent); }
+
+  .sidebar-footer {
+    font-size: 11px; color: var(--fg-muted); text-align: center; margin-top: 10px;
+    font-style: italic;
+  }
+
+  .sidebar-empty {
+    text-align: center; padding: 16px; color: var(--fg-muted); font-size: 12px;
+  }
+
+  @media (max-width: 800px) {
+    .sidebar-col { margin-bottom: 8px; }
+  }
+  @media (max-width: 500px) {
+    .budget-row { gap: 10px; }
+    .task { padding: 8px 10px; gap: 6px; }
+    .task-actions { gap: 2px; }
+  }
+</style>
+
+<div class="header">
+  <h1>Daily <span>Planner</span></h1>
+  <span class="date" id="today-date"></span>
+</div>
+
+<div class="page-layout">
+<div class="main-col">
+
+<div class="budget">
+  <div class="budget-row">
+    <div class="budget-item">
+      <span class="budget-label">Work day</span>
+      <div class="stepper">
+        <button class="stepper-btn" data-stepper="total" data-dir="-1">&minus;</button>
+        <input type="number" class="stepper-val" id="total-hours" value="9" min="1" max="16" step="0.5">
+        <button class="stepper-btn" data-stepper="total" data-dir="1">+</button>
+      </div>
+      <span class="budget-label">h</span>
+    </div>
+    <div class="budget-item">
+      <span class="budget-label">Meetings</span>
+      <div class="stepper">
+        <button class="stepper-btn" data-stepper="meeting" data-dir="-1">&minus;</button>
+        <input type="number" class="stepper-val" id="meeting-hours" value="3" min="0" max="14" step="0.5">
+        <button class="stepper-btn" data-stepper="meeting" data-dir="1">+</button>
+      </div>
+      <span class="budget-label">h</span>
+    </div>
+    <div class="budget-item">
+      <span class="budget-label">Deep work</span>
+      <span class="budget-result" id="available-hours">6h</span>
+    </div>
+  </div>
+  <div class="budget-bar-track"><div class="budget-bar-fill" id="budget-bar"></div></div>
+  <div class="budget-summary">
+    <span id="allocated-label">0h allocated</span>
+    <span id="remaining-label">6h remaining</span>
+  </div>
+</div>
+
+<div class="add-row">
+  <input type="text" id="new-task" placeholder="Add a task...">
+  <select id="new-initiative"></select>
+  <div class="add-dest">
+    <button id="dest-today" class="active">Today</button>
+    <button id="dest-backlog">Backlog</button>
+  </div>
+  <button class="icon-btn init-mgr-btn" id="init-mgr-toggle" title="Manage initiatives">&#9881;</button>
+  <button class="add-btn" id="add-btn">Add</button>
+</div>
+<div class="init-panel" id="init-panel">
+  <div class="init-panel-title">Manage Initiatives</div>
+  <div class="init-list" id="init-list"></div>
+  <div class="init-add-row">
+    <input type="text" id="new-init-input" placeholder="New initiative name...">
+    <button id="add-init-btn">Add</button>
+  </div>
+</div>
+
+<div class="section-header">
+  <span class="section-title">Today's Focus</span>
+  <span class="section-count" id="today-count"></span>
+</div>
+<div class="block-all-row" id="block-all-row" hidden>
+  <button class="block-all-btn" id="block-all-btn">&#128197; Block all on calendar</button>
+</div>
+<div class="task-list" id="today-tasks"></div>
+
+<div class="divider"></div>
+
+<div class="section-header">
+  <span class="section-title">Backlog</span>
+  <span class="section-count" id="backlog-count"></span>
+</div>
+<div class="task-list" id="backlog-tasks"></div>
+
+<div id="done-section" hidden>
+  <div class="divider"></div>
+  <div class="section-header">
+    <span class="section-title">Done Today</span>
+    <span class="section-count" id="done-count"></span>
+  </div>
+  <div id="done-tasks"></div>
+</div>
+
+</div><!-- main-col -->
+
+<div class="sidebar-col">
+  <div class="sidebar-panel">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Needs Reply <span class="reply-badge" id="reply-badge">0</span></div>
+    </div>
+    <div id="reply-list"></div>
+    <div class="sidebar-footer">Ask Claude to refresh this list</div>
+  </div>
+</div>
+
+</div><!-- page-layout -->
+
+<script>
+(function() {
+  var SK = 'planner_v4';
+  var DEFAULT_INITS = ['Digital Payments','DD Auto Retry','KTLO AMS','Flights DD','Payment Guarantee','SOA Discovery','BT Net Bleeding','AI / ReconAI','General'];
+  var DEFAULT_REPLIES = [
+    { id: 'pr1', sender: 'Pallavi Malik', preview: 'Would it be possible to get clarity by Monday EOD if this is feasible for your team?', time: 'Fri 8:43p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280432', source: 'slack' },
+    { id: 'pr2', sender: 'Deepak Goenka', preview: 'Would you be joining the CR call?', time: 'Fri 4:03p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280383', source: 'slack' },
+    { id: 'pr3', sender: 'Hugo Fridlander', preview: 'Sent you an invite for this afternoon if you can make it', time: 'Fri 3:56p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280208', source: 'slack' },
+    { id: 'pr4', sender: 'Laure Aguilar', preview: 'Our system removes PII to classify, and we built escalation reasons based on patterns', time: 'Fri 5:26p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280569', source: 'slack' },
+    { id: 'pr5', sender: 'Ilona Vermunt', preview: 'Scheduled call for Payment Guarantee discovery — confirm availability', time: 'Fri 7:18p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280703', source: 'slack' }
+  ];
+
+  function todayStr() { return new Date().toISOString().slice(0,10); }
+  function genId() { return Math.random().toString(36).slice(2,9); }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(SK);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s.date !== todayStr()) {
+          s.tasks.forEach(function(t) { if (t.today) { t.today = false; t.todayHours = 0; } t.done = false; });
+          s.date = todayStr();
+        }
+        if (!s.initiatives) s.initiatives = DEFAULT_INITS.slice();
+        if (!s.pendingReplies) s.pendingReplies = DEFAULT_REPLIES.slice();
+        return s;
+      }
+    } catch(e) {}
+    return defaults();
+  }
+
+  function defaults() {
+    return {
+      date: todayStr(), totalHours: 9, meetingHours: 3,
+      initiatives: DEFAULT_INITS.slice(),
+      pendingReplies: DEFAULT_REPLIES.slice(),
+      tasks: [
+        { id: genId(), title: 'Review AMS KTLO CR pipeline status', initiative: 'KTLO AMS', today: true, todayHours: 1, done: false },
+        { id: genId(), title: 'Finalize Digital Payments pilot partner list', initiative: 'Digital Payments', today: true, todayHours: 2, done: false },
+        { id: genId(), title: 'Draft Flights DD PRD — Section 3', initiative: 'Flights DD', today: true, todayHours: 1.5, done: false },
+        { id: genId(), title: 'Prepare agenda for Ilona sync', initiative: 'Payment Guarantee', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'SOA platform — stakeholder mapping', initiative: 'SOA Discovery', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'Follow up with Florence on CC ticket tooling', initiative: 'KTLO AMS', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'BT Net Bleeding — pull 2025 data for impact sizing', initiative: 'BT Net Bleeding', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'Reply to Pedro on Surcharge timeline', initiative: 'General', today: false, todayHours: 0, done: false },
+      ]
+    };
+  }
+
+  var state = load();
+  function save() { try { localStorage.setItem(SK, JSON.stringify(state)); } catch(e) {} }
+  function avail() { return Math.max(0, state.totalHours - state.meetingHours); }
+  function allocated() { return state.tasks.filter(function(t){ return t.today && !t.done; }).reduce(function(s,t){ return s + (t.todayHours||0); }, 0); }
+  function fmtHours(h) {
+    if (h === 0) return '0h';
+    var hrs = Math.floor(h);
+    var mins = Math.round((h - hrs) * 60);
+    if (hrs && mins) return hrs + 'h ' + mins + 'm';
+    if (hrs) return hrs + 'h';
+    return mins + 'm';
+  }
+
+  function getBaseStart() {
+    var now = new Date();
+    var mins = now.getMinutes();
+    var next = mins <= 30 ? 30 : 60;
+    var baseStart = new Date(now); baseStart.setMinutes(next, 0, 0);
+    if (next === 60) { baseStart.setMinutes(0); baseStart.setHours(baseStart.getHours() + 1); }
+    return baseStart;
+  }
+
+  function calUrl(t) {
+    var baseStart = getBaseStart();
+    var todayTasks = state.tasks.filter(function(x) { return x.today && !x.done; });
+    var offset = 0;
+    for (var i = 0; i < todayTasks.length; i++) {
+      if (todayTasks[i].id === t.id) break;
+      offset += (todayTasks[i].todayHours || 0) * 60;
+    }
+    var start = new Date(baseStart.getTime() + offset * 60000);
+    var dur = (t.todayHours || 1) * 60;
+    var end = new Date(start.getTime() + dur * 60000);
+    function fmt(d) { return d.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''); }
+    var title = encodeURIComponent('Focus: ' + t.title);
+    var details = encodeURIComponent('Initiative: ' + (t.initiative || 'None'));
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&details=' + details + '&dates=' + fmt(start) + '/' + fmt(end);
+  }
+
+  var DURATIONS = [
+    { val: 0.25, label: '15m' }, { val: 0.5, label: '30m' }, { val: 0.75, label: '45m' },
+    { val: 1, label: '1h' }, { val: 1.5, label: '1.5h' }, { val: 2, label: '2h' },
+    { val: 2.5, label: '2.5h' }, { val: 3, label: '3h' }, { val: 4, label: '4h' }
+  ];
+
+  function fmtTime(d) {
+    var h = d.getHours(), m = d.getMinutes();
+    var ampm = h >= 12 ? 'p' : 'a';
+    h = h % 12 || 12;
+    return h + (m ? ':' + (m < 10 ? '0' : '') + m : '') + ampm;
+  }
+
+  function taskTimeSlot(t) {
+    var baseStart = getBaseStart();
+    var todayTasks = state.tasks.filter(function(x) { return x.today && !x.done; });
+    var offset = 0;
+    for (var i = 0; i < todayTasks.length; i++) {
+      if (todayTasks[i].id === t.id) break;
+      offset += (todayTasks[i].todayHours || 0) * 60;
+    }
+    var start = new Date(baseStart.getTime() + offset * 60000);
+    var dur = (t.todayHours || 0.25) * 60;
+    var end = new Date(start.getTime() + dur * 60000);
+    return { start: start, end: end, label: fmtTime(start) + '–' + fmtTime(end) };
+  }
+
+  function taskHtml(t, section) {
+    var isToday = section === 'today';
+    var isDone = section === 'done';
+    var tag = t.initiative ? '<span class="initiative-tag">' + esc(t.initiative) + '</span>' : '';
+    var hrs = '';
+    var calBtn = '';
+    var slotLabel = '';
+    if (isToday) {
+      var opts = DURATIONS.map(function(d) {
+        return '<option value="' + d.val + '"' + (t.todayHours === d.val ? ' selected' : '') + '>' + d.label + '</option>';
+      }).join('');
+      hrs = '<select class="duration-select" data-hours="' + t.id + '">' + opts + '</select>';
+      if (t.todayHours > 0) {
+        var slot = taskTimeSlot(t);
+        slotLabel = '<span class="time-slot">' + slot.label + '</span>';
+        calBtn = '<a href="' + calUrl(t) + '" target="_blank" rel="noopener" class="icon-btn cal-btn" title="Block on calendar">&#128197;</a>';
+      }
+    }
+    return '<div class="task' + (isToday ? ' today-active' : '') + (isDone ? ' is-done' : '') + '" data-id="' + t.id + '">' +
+      (isDone ? '' : '<span class="drag-handle">⠰</span>') +
+      '<div class="task-check' + (isDone ? ' checked' : '') + '" data-done="' + t.id + '"></div>' +
+      '<div class="task-body"><div class="task-title">' + esc(t.title) + ' ' + tag + '</div></div>' +
+      '<div class="task-actions">' + slotLabel + hrs + calBtn +
+      '<button class="icon-btn delete-btn danger" data-del="' + t.id + '" title="Remove">&times;</button></div></div>';
+  }
+
+  /* Sidebar rendering */
+  function renderReplies() {
+    var list = document.getElementById('reply-list');
+    var badge = document.getElementById('reply-badge');
+    var replies = state.pendingReplies || [];
+    badge.textContent = replies.length;
+    if (!replies.length) {
+      list.innerHTML = '<div class="sidebar-empty">All caught up</div>';
+      return;
+    }
+    list.innerHTML = replies.map(function(r) {
+      var srcClass = r.source === 'email' ? ' email-source' : '';
+      return '<div class="reply-card' + srcClass + '" data-reply-id="' + esc(r.id) + '">' +
+        '<button class="reply-dismiss" data-dismiss-reply="' + esc(r.id) + '" title="Dismiss">&times;</button>' +
+        '<div class="reply-card-top"><span class="reply-sender">' + esc(r.sender) + '</span><span class="reply-time">' + esc(r.time) + '</span></div>' +
+        '<div class="reply-preview">' + esc(r.preview) + '</div>' +
+        '<div class="reply-actions"><a href="' + esc(r.url) + '" target="_blank" rel="noopener" class="reply-link">↗ Open in Slack</a></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function bindReplyEvents() {
+    document.querySelectorAll('[data-dismiss-reply]').forEach(function(btn) {
+      btn.onclick = function() {
+        var id = btn.dataset.dismissReply;
+        state.pendingReplies = (state.pendingReplies || []).filter(function(r) { return r.id !== id; });
+        renderReplies();
+        bindReplyEvents();
+        save();
+      };
+    });
+  }
+
+  var sortableToday, sortableBacklog;
+
+  function render() {
+    document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    document.getElementById('total-hours').value = state.totalHours;
+    document.getElementById('meeting-hours').value = state.meetingHours;
+    var av = avail(), al = allocated();
+    document.getElementById('available-hours').textContent = fmtHours(av);
+    var pct = av > 0 ? Math.min(100, (al / av) * 100) : (al > 0 ? 100 : 0);
+    var bar = document.getElementById('budget-bar');
+    bar.style.width = pct + '%';
+    bar.className = 'budget-bar-fill' + (al > av ? ' over' : '');
+    document.getElementById('allocated-label').textContent = fmtHours(al) + ' allocated';
+    document.getElementById('remaining-label').textContent = fmtHours(Math.max(0, av - al)) + ' remaining';
+
+    var todayTasks = [], backlogTasks = [], doneTasks = [];
+    state.tasks.forEach(function(t) {
+      if (t.done) doneTasks.push(t);
+      else if (t.today) todayTasks.push(t);
+      else backlogTasks.push(t);
+    });
+
+    // Block all button visibility
+    var hasBlockable = todayTasks.some(function(t) { return t.todayHours > 0; });
+    document.getElementById('block-all-row').hidden = !hasBlockable;
+
+    var te = document.getElementById('today-tasks');
+    te.innerHTML = todayTasks.length ? todayTasks.map(function(t){ return taskHtml(t,'today'); }).join('') : '<div class="empty-state">Drag tasks here or add from backlog</div>';
+    document.getElementById('today-count').textContent = todayTasks.length ? todayTasks.length + ' tasks · ' + fmtHours(al) : '';
+
+    var be = document.getElementById('backlog-tasks');
+    be.innerHTML = backlogTasks.length ? backlogTasks.map(function(t){ return taskHtml(t,'backlog'); }).join('') : '<div class="empty-state">All tasks planned or done</div>';
+    document.getElementById('backlog-count').textContent = backlogTasks.length ? backlogTasks.length + ' tasks' : '';
+
+    var ds = document.getElementById('done-section');
+    if (doneTasks.length) {
+      ds.hidden = false;
+      document.getElementById('done-tasks').innerHTML = doneTasks.map(function(t){ return taskHtml(t,'done'); }).join('');
+      document.getElementById('done-count').textContent = doneTasks.length + ' done';
+    } else { ds.hidden = true; }
+
+    renderInitSelect();
+    renderInitPanel();
+    renderReplies();
+    bindTaskEvents();
+    bindReplyEvents();
+    initSortable();
+    save();
+  }
+
+  function renderInitSelect() {
+    var sel = document.getElementById('new-initiative');
+    var prev = sel.value;
+    sel.innerHTML = '<option value="">No initiative</option>' + state.initiatives.map(function(i){ return '<option value="' + esc(i) + '">' + esc(i) + '</option>'; }).join('');
+    sel.value = prev || '';
+  }
+
+  function renderInitPanel() {
+    document.getElementById('init-list').innerHTML = state.initiatives.map(function(i) {
+      return '<span class="init-chip">' + esc(i) + '<button data-delinit="' + esc(i) + '" title="Remove">&times;</button></span>';
+    }).join('');
+  }
+
+  function syncOrder(listEl, isTodayList) {
+    var ids = Array.from(listEl.querySelectorAll('.task')).map(function(el) { return el.dataset.id; });
+    ids.forEach(function(id) {
+      var t = state.tasks.find(function(x){ return x.id === id; });
+      if (t) {
+        t.today = isTodayList;
+        if (isTodayList && !t.todayHours) t.todayHours = 0.5;
+        if (!isTodayList) t.todayHours = 0;
+      }
+    });
+    var ordered = [];
+    var todayIds = Array.from(document.getElementById('today-tasks').querySelectorAll('.task')).map(function(el){ return el.dataset.id; });
+    var backlogIds = Array.from(document.getElementById('backlog-tasks').querySelectorAll('.task')).map(function(el){ return el.dataset.id; });
+    var doneIds = state.tasks.filter(function(t){ return t.done; }).map(function(t){ return t.id; });
+    var allIds = todayIds.concat(backlogIds).concat(doneIds);
+    allIds.forEach(function(id) {
+      var t = state.tasks.find(function(x){ return x.id === id; });
+      if (t) ordered.push(t);
+    });
+    state.tasks.forEach(function(t) { if (ordered.indexOf(t) === -1) ordered.push(t); });
+    state.tasks = ordered;
+  }
+
+  function initSortable() {
+    if (sortableToday) sortableToday.destroy();
+    if (sortableBacklog) sortableBacklog.destroy();
+    var opts = {
+      group: 'planner',
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      filter: '.empty-state',
+      onEnd: function() {
+        syncOrder(document.getElementById('today-tasks'), true);
+        syncOrder(document.getElementById('backlog-tasks'), false);
+        render();
+      }
+    };
+    sortableToday = Sortable.create(document.getElementById('today-tasks'), opts);
+    sortableBacklog = Sortable.create(document.getElementById('backlog-tasks'), opts);
+  }
+
+  function bindTaskEvents() {
+    document.querySelectorAll('[data-done]').forEach(function(el) {
+      el.onclick = function() {
+        var t = state.tasks.find(function(x){ return x.id === el.dataset.done; });
+        if (t) { t.done = !t.done; if (t.done) t.today = false; render(); }
+      };
+    });
+    document.querySelectorAll('[data-hours]').forEach(function(sel) {
+      sel.onchange = function() {
+        var t = state.tasks.find(function(x){ return x.id === sel.dataset.hours; });
+        if (t) { t.todayHours = parseFloat(sel.value) || 0.25; render(); }
+      };
+    });
+    document.querySelectorAll('[data-del]').forEach(function(btn) {
+      btn.onclick = function() {
+        state.tasks = state.tasks.filter(function(x){ return x.id !== btn.dataset.del; });
+        render();
+      };
+    });
+    document.querySelectorAll('[data-delinit]').forEach(function(btn) {
+      btn.onclick = function() {
+        var name = btn.dataset.delinit;
+        state.initiatives = state.initiatives.filter(function(i){ return i !== name; });
+        render();
+      };
+    });
+  }
+
+  // Steppers
+  document.querySelectorAll('[data-stepper]').forEach(function(btn) {
+    btn.onclick = function() {
+      var field = btn.dataset.stepper;
+      var dir = parseInt(btn.dataset.dir);
+      if (field === 'total') { state.totalHours = Math.max(0.5, Math.min(16, state.totalHours + dir * 0.5)); }
+      else { state.meetingHours = Math.max(0, Math.min(14, state.meetingHours + dir * 0.5)); }
+      render();
+    };
+  });
+  document.getElementById('total-hours').addEventListener('change', function() { state.totalHours = Math.max(0.5, Math.min(16, parseFloat(this.value)||9)); render(); });
+  document.getElementById('meeting-hours').addEventListener('change', function() { state.meetingHours = Math.max(0, Math.min(14, parseFloat(this.value)||0)); render(); });
+
+  // Destination toggle
+  var addToToday = true;
+  var destTodayBtn = document.getElementById('dest-today');
+  var destBacklogBtn = document.getElementById('dest-backlog');
+  destTodayBtn.onclick = function() { addToToday = true; destTodayBtn.classList.add('active'); destBacklogBtn.classList.remove('active'); };
+  destBacklogBtn.onclick = function() { addToToday = false; destBacklogBtn.classList.add('active'); destTodayBtn.classList.remove('active'); };
+
+  // Add task
+  function addTask() {
+    var inp = document.getElementById('new-task');
+    var sel = document.getElementById('new-initiative');
+    var title = inp.value.trim();
+    if (!title) return;
+    state.tasks.push({ id: genId(), title: title, initiative: sel.value, today: addToToday, todayHours: addToToday ? 0.5 : 0, done: false });
+    inp.value = '';
+    render();
+  }
+  document.getElementById('add-btn').onclick = addTask;
+  document.getElementById('new-task').onkeydown = function(e) { if (e.key === 'Enter') addTask(); };
+
+  // Block all focus time
+  document.getElementById('block-all-btn').onclick = function() {
+    var todayTasks = state.tasks.filter(function(t) { return t.today && !t.done && t.todayHours > 0; });
+    todayTasks.forEach(function(t, i) {
+      setTimeout(function() {
+        window.open(calUrl(t), '_blank');
+      }, i * 400);
+    });
+  };
+
+  // Initiative manager
+  document.getElementById('init-mgr-toggle').onclick = function() {
+    document.getElementById('init-panel').classList.toggle('open');
+  };
+  document.getElementById('add-init-btn').onclick = function() {
+    var inp = document.getElementById('new-init-input');
+    var name = inp.value.trim();
+    if (name && state.initiatives.indexOf(name) === -1) {
+      state.initiatives.push(name);
+      inp.value = '';
+      render();
+    }
+  };
+  document.getElementById('new-init-input').onkeydown = function(e) {
+    if (e.key === 'Enter') document.getElementById('add-init-btn').click();
+  };
+
+  render();
+})();
+</script>
