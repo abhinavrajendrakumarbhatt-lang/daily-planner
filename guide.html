@@ -1,0 +1,206 @@
+<title>Daily Planner Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #fafaf9; --surface: #ffffff; --surface-alt: #f5f5f4;
+    --border: #e7e5e4; --fg: #1c1917; --fg-muted: #78716c;
+    --accent: #2563eb; --accent-soft: #dbeafe;
+    --done: #16a34a; --done-soft: #dcfce7;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0a09; --surface: #1c1917; --surface-alt: #292524;
+      --border: #44403c; --fg: #fafaf9; --fg-muted: #a8a29e;
+      --accent: #60a5fa; --accent-soft: #1e3a5f;
+      --done: #4ade80; --done-soft: #14532d;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0a09; --surface: #1c1917; --surface-alt: #292524;
+    --border: #44403c; --fg: #fafaf9; --fg-muted: #a8a29e;
+    --accent: #60a5fa; --accent-soft: #1e3a5f;
+    --done: #4ade80; --done-soft: #14532d;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0; max-width: 680px; margin: 0 auto; line-height: 1.7;
+  }
+  * { box-sizing: border-box; margin: 0; }
+
+  .hero { padding: 48px 0 32px; }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 15px; color: var(--fg-muted); max-width: 520px; }
+  .cta {
+    display: inline-block; margin-top: 20px; padding: 10px 24px;
+    background: var(--accent); color: white; border-radius: 8px;
+    font-weight: 600; font-size: 14px; text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .cta:hover { opacity: 0.9; }
+
+  h2 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--fg-muted); margin: 36px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+
+  .step {
+    display: flex; gap: 14px; margin-bottom: 20px; align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent);
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .step-body h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .step-body p { font-size: 13px; color: var(--fg-muted); }
+
+  .feature-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin-bottom: 12px;
+  }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px;
+  }
+  .feature-card .icon { font-size: 20px; margin-bottom: 8px; }
+  .feature-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .feature-card p { font-size: 12px; color: var(--fg-muted); line-height: 1.5; }
+
+  .note {
+    background: var(--surface-alt); border-radius: 10px; padding: 16px;
+    font-size: 13px; color: var(--fg-muted); margin: 24px 0;
+  }
+  .note strong { color: var(--fg); }
+
+  .footer {
+    padding: 32px 0; font-size: 12px; color: var(--fg-muted);
+    border-top: 1px solid var(--border); margin-top: 32px;
+  }
+</style>
+
+<div class="hero">
+  <h1>Daily <span>Planner</span></h1>
+  <p>A time-boxing tool for PMs and ICs who juggle multiple initiatives. Plan your day, set time boundaries, and block focus time on your calendar — all in one page.</p>
+  <a class="cta" href="./index.html">Open Planner</a>
+</div>
+
+<h2>How it works</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h3>Set your time budget</h3>
+    <p>Enter your total work hours and meeting hours. The planner calculates your available deep work time and shows a progress bar as you allocate tasks.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h3>Add tasks and pick today's slice</h3>
+    <p>Add tasks to Today's Focus or Backlog. Each task can be tagged with an initiative. Use the <strong>Today / Backlog</strong> toggle to choose where new tasks land.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h3>Time-box with durations</h3>
+    <p>Set a duration for each today task (15m to 4h). This is your boundary — "I'll spend 2h on this, no more." The planner stacks them sequentially and shows each task's time slot.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h3>Drag to prioritize</h3>
+    <p>Grab the <strong>&#8942;&#8942;</strong> handle to reorder tasks. Drag between Today and Backlog. The order in Today's Focus <em>is</em> your schedule — reorder = reschedule.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <h3>Block focus time on calendar</h3>
+    <p>Click <strong>"Block all on calendar"</strong> to step through each task and create Google Calendar events. Tasks stack sequentially starting from the next half hour.</p>
+  </div>
+</div>
+
+<h2>Features</h2>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="icon">&#128203;</div>
+    <h3>Time Budget Bar</h3>
+    <p>See your available hours at a glance. Turns red if you over-commit.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">&#9776;</div>
+    <h3>Drag and Drop</h3>
+    <p>Reorder within sections or drag between Today and Backlog.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">&#128197;</div>
+    <h3>Calendar Blocking</h3>
+    <p>One-click Google Calendar events with sequential time stacking.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">&#9881;</div>
+    <h3>Initiative Management</h3>
+    <p>Create, tag, and manage your own initiatives. Click the gear icon.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">&#128337;</div>
+    <h3>Duration Picker</h3>
+    <p>15m, 30m, 45m, 1h, up to 4h. Time slots update live as you change durations.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">&#128172;</div>
+    <h3>Needs Reply Sidebar</h3>
+    <p>Surface Slack messages and emails needing your attention. Integrated with Claude Code.</p>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Your data is private.</strong> All tasks, initiatives, and settings are stored in your browser's localStorage. Nobody else can see your data — even if you share this link with your whole team, everyone gets their own independent planner.
+</div>
+
+<h2>Tips</h2>
+
+<div class="step">
+  <div class="step-num">&#10003;</div>
+  <div class="step-body">
+    <h3>First thing in the morning</h3>
+    <p>Set your meeting hours, pull yesterday's unfinished tasks from Backlog into Today, time-box them, and hit "Block all on calendar."</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">&#10003;</div>
+  <div class="step-body">
+    <h3>Customize your initiatives</h3>
+    <p>Click the &#9881; gear icon next to the initiative dropdown. Add your real projects, delete the defaults.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">&#10003;</div>
+  <div class="step-body">
+    <h3>Daily auto-reset</h3>
+    <p>When you open the planner the next day, unfinished today tasks move back to Backlog automatically. Fresh start every morning.</p>
+  </div>
+</div>
+
+<div class="footer">
+  Built by Abhinav Bhatt &middot; FS O2C, Booking Holdings
+</div>
