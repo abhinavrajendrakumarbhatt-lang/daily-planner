@@ -201,6 +201,65 @@
   </div>
 </div>
 
+<h2>Slack Integration with Claude Code</h2>
+
+<div class="note">
+  <strong>Optional but powerful.</strong> Connect the planner to Claude Code to surface Slack messages needing your reply — right in the sidebar, every morning. Takes 2 minutes to set up.
+</div>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h3>Clone the repo</h3>
+    <p>Open your terminal and run:</p>
+    <pre style="background:var(--surface-alt);padding:10px 14px;border-radius:8px;font-family:var(--font-mono);font-size:12px;overflow-x:auto;margin-top:6px;color:var(--fg)">git clone https://github.com/abhinavrajendrakumarbhatt-lang/daily-planner.git</pre>
+    <p style="margin-top:6px">This downloads a <code style="background:var(--surface-alt);padding:1px 5px;border-radius:3px;font-size:12px">CLAUDE.md</code> file that teaches Claude Code what "refresh my planner" means.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h3>Open Claude Code in the cloned folder</h3>
+    <pre style="background:var(--surface-alt);padding:10px 14px;border-radius:8px;font-family:var(--font-mono);font-size:12px;overflow-x:auto;margin-top:6px;color:var(--fg)">cd daily-planner
+claude</pre>
+    <p style="margin-top:6px">Claude Code auto-loads the CLAUDE.md instructions when opened inside this folder.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h3>Say "refresh my planner"</h3>
+    <p>Claude searches <strong>your</strong> Slack DMs for messages you haven't replied to. It uses your own Slack identity via Fabric MCP (already configured org-wide at Booking) — it only sees messages sent to you.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h3>Click the link Claude gives you</h3>
+    <p>Claude generates a special link to the planner with your Slack data encoded in it. Click it once — the planner saves the data to your browser and the link becomes the normal planner URL. Your tasks and everything else stay untouched.</p>
+  </div>
+</div>
+
+<h2 style="margin-top:36px">What you need &amp; what you don't</h2>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <h3 style="color:var(--done)">Required</h3>
+    <p>Claude Code installed<br>Git (for cloning the repo)<br>Fabric MCP connected (check with <code style="background:var(--surface-alt);padding:1px 4px;border-radius:3px;font-size:11px">claude mcp list</code>)</p>
+  </div>
+  <div class="feature-card">
+    <h3 style="color:var(--fg-muted)">Not needed</h3>
+    <p>No GitHub account<br>No API keys or tokens<br>No extra setup or config<br>No sign-up or login</p>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Without Claude Code:</strong> The planner works perfectly on its own — you just won't get the Slack "Needs Reply" sidebar populated automatically. Everything else (tasks, time-boxing, drag-drop, calendar blocking) works without any setup.
+</div>
+
 <div class="footer">
   Built by Abhinav Bhatt &middot; FS O2C, Booking Holdings
 </div>
