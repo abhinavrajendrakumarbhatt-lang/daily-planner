@@ -423,14 +423,8 @@
 <script>
 (function() {
   var SK = 'planner_v4';
-  var DEFAULT_INITS = ['Digital Payments','DD Auto Retry','KTLO AMS','Flights DD','Payment Guarantee','SOA Discovery','BT Net Bleeding','AI / ReconAI','General'];
-  var DEFAULT_REPLIES = [
-    { id: 'pr1', sender: 'Pallavi Malik', preview: 'Would it be possible to get clarity by Monday EOD if this is feasible for your team?', time: 'Fri 8:43p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280432', source: 'slack' },
-    { id: 'pr2', sender: 'Deepak Goenka', preview: 'Would you be joining the CR call?', time: 'Fri 4:03p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280383', source: 'slack' },
-    { id: 'pr3', sender: 'Hugo Fridlander', preview: 'Sent you an invite for this afternoon if you can make it', time: 'Fri 3:56p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280208', source: 'slack' },
-    { id: 'pr4', sender: 'Laure Aguilar', preview: 'Our system removes PII to classify, and we built escalation reasons based on patterns', time: 'Fri 5:26p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280569', source: 'slack' },
-    { id: 'pr5', sender: 'Ilona Vermunt', preview: 'Scheduled call for Payment Guarantee discovery — confirm availability', time: 'Fri 7:18p', url: 'https://booking.enterprise.slack.com/archives/D0BJL2LAL5B/p1791280703', source: 'slack' }
-  ];
+  var DEFAULT_INITS = ['Project Alpha','Project Beta','Operations','Discovery','Platform','General'];
+  var DEFAULT_REPLIES = [];
 
   function todayStr() { return new Date().toISOString().slice(0,10); }
   function genId() { return Math.random().toString(36).slice(2,9); }
@@ -459,14 +453,11 @@
       initiatives: DEFAULT_INITS.slice(),
       pendingReplies: DEFAULT_REPLIES.slice(),
       tasks: [
-        { id: genId(), title: 'Review AMS KTLO CR pipeline status', initiative: 'KTLO AMS', today: true, todayHours: 1, done: false },
-        { id: genId(), title: 'Finalize Digital Payments pilot partner list', initiative: 'Digital Payments', today: true, todayHours: 2, done: false },
-        { id: genId(), title: 'Draft Flights DD PRD — Section 3', initiative: 'Flights DD', today: true, todayHours: 1.5, done: false },
-        { id: genId(), title: 'Prepare agenda for Ilona sync', initiative: 'Payment Guarantee', today: false, todayHours: 0, done: false },
-        { id: genId(), title: 'SOA platform — stakeholder mapping', initiative: 'SOA Discovery', today: false, todayHours: 0, done: false },
-        { id: genId(), title: 'Follow up with Florence on CC ticket tooling', initiative: 'KTLO AMS', today: false, todayHours: 0, done: false },
-        { id: genId(), title: 'BT Net Bleeding — pull 2025 data for impact sizing', initiative: 'BT Net Bleeding', today: false, todayHours: 0, done: false },
-        { id: genId(), title: 'Reply to Pedro on Surcharge timeline', initiative: 'General', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'Review sprint backlog priorities', initiative: 'Operations', today: true, todayHours: 1, done: false },
+        { id: genId(), title: 'Draft PRD for Q1 feature', initiative: 'Project Alpha', today: true, todayHours: 2, done: false },
+        { id: genId(), title: 'Stakeholder alignment call prep', initiative: 'Discovery', today: true, todayHours: 0.5, done: false },
+        { id: genId(), title: 'Update platform roadmap deck', initiative: 'Platform', today: false, todayHours: 0, done: false },
+        { id: genId(), title: 'Research competitor pricing models', initiative: 'Project Beta', today: false, todayHours: 0, done: false },
       ]
     };
   }
