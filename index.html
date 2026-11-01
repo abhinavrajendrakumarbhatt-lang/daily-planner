@@ -426,7 +426,7 @@
       <div class="sidebar-title">Needs Reply <span class="reply-badge" id="reply-badge">0</span></div>
     </div>
     <div id="reply-list"></div>
-    <div class="sidebar-footer">Ask Claude to refresh this list</div>
+    <div class="sidebar-footer">Say "refresh my planner" in Claude Code</div>
   </div>
 </div>
 
@@ -475,6 +475,36 @@
   }
 
   var state = load();
+
+  // Hash-parameter bridge: Claude Code injects data via #data=<base64 JSON>
+  (function ingestHash() {
+    try {
+      var h = location.hash;
+      if (h && h.indexOf('#data=') === 0) {
+        var json = decodeURIComponent(atob(h.slice(6)));
+        var payload = JSON.parse(json);
+        if (payload.replies && Array.isArray(payload.replies)) {
+          state.pendingReplies = payload.replies;
+        }
+        if (payload.tasks && Array.isArray(payload.tasks)) {
+          payload.tasks.forEach(function(t) {
+            if (!state.tasks.some(function(x) { return x.title === t.title; })) {
+              state.tasks.push({ id: genId(), title: t.title, initiative: t.initiative || '', today: !!t.today, todayHours: t.todayHours || 0, done: false });
+            }
+          });
+        }
+        if (payload.initiatives && Array.isArray(payload.initiatives)) {
+          payload.initiatives.forEach(function(i) {
+            if (state.initiatives.indexOf(i) === -1) state.initiatives.push(i);
+          });
+        }
+        // Save and strip hash
+        try { localStorage.setItem(SK, JSON.stringify(state)); } catch(e) {}
+        history.replaceState(null, '', location.pathname);
+      }
+    } catch(e) { /* malformed hash, ignore */ }
+  })();
+
   function save() { try { localStorage.setItem(SK, JSON.stringify(state)); } catch(e) {} }
   function avail() { return Math.max(0, state.totalHours - state.meetingHours); }
   function allocated() { return state.tasks.filter(function(t){ return t.today && !t.done; }).reduce(function(s,t){ return s + (t.todayHours||0); }, 0); }
