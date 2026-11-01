@@ -191,7 +191,7 @@
   .task:hover .delete-btn { opacity: 1; }
 
   /* Block all button */
-  .block-all-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .block-all-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .block-all-btn {
     padding: 5px 12px; border: 1px solid var(--border); border-radius: 7px;
     background: var(--surface); color: var(--fg-muted); font-family: var(--font-body);
@@ -199,6 +199,15 @@
     display: flex; align-items: center; gap: 5px;
   }
   .block-all-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .block-progress { font-size: 11px; color: var(--fg-muted); font-family: var(--font-mono); }
+  .block-next-btn {
+    padding: 5px 10px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent);
+    color: white; font-family: var(--font-body); font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .block-skip-btn {
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-alt);
+    color: var(--fg-muted); font-family: var(--font-body); font-size: 11px; font-weight: 600; cursor: pointer;
+  }
 
   /* Add task */
   .add-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
@@ -386,6 +395,9 @@
 </div>
 <div class="block-all-row" id="block-all-row" hidden>
   <button class="block-all-btn" id="block-all-btn">&#128197; Block all on calendar</button>
+  <span class="block-progress" id="block-progress" hidden></span>
+  <button class="block-next-btn" id="block-next-btn" hidden>Open next</button>
+  <button class="block-skip-btn" id="block-skip-btn" hidden>Skip</button>
 </div>
 <div class="task-list" id="today-tasks"></div>
 
@@ -754,14 +766,53 @@
   document.getElementById('add-btn').onclick = addTask;
   document.getElementById('new-task').onkeydown = function(e) { if (e.key === 'Enter') addTask(); };
 
-  // Block all focus time
+  // Block all focus time — step-by-step flow
+  var blockQueue = [];
+  var blockIndex = 0;
+
+  function updateBlockUI() {
+    var prog = document.getElementById('block-progress');
+    var nextBtn = document.getElementById('block-next-btn');
+    var skipBtn = document.getElementById('block-skip-btn');
+    var mainBtn = document.getElementById('block-all-btn');
+    if (blockIndex < blockQueue.length) {
+      var t = blockQueue[blockIndex];
+      var slot = taskTimeSlot(t);
+      prog.textContent = (blockIndex + 1) + '/' + blockQueue.length + ': ' + t.title + ' (' + slot.label + ')';
+      prog.hidden = false;
+      nextBtn.textContent = 'Book ' + slot.label;
+      nextBtn.hidden = false;
+      skipBtn.hidden = false;
+      mainBtn.hidden = true;
+    } else {
+      prog.textContent = blockQueue.length > 0 ? 'All ' + blockQueue.length + ' blocked!' : '';
+      prog.hidden = blockQueue.length === 0;
+      nextBtn.hidden = true;
+      skipBtn.hidden = true;
+      mainBtn.hidden = false;
+      blockQueue = [];
+      blockIndex = 0;
+      if (prog.textContent) setTimeout(function() { prog.hidden = true; }, 3000);
+    }
+  }
+
   document.getElementById('block-all-btn').onclick = function() {
-    var todayTasks = state.tasks.filter(function(t) { return t.today && !t.done && t.todayHours > 0; });
-    todayTasks.forEach(function(t, i) {
-      setTimeout(function() {
-        window.open(calUrl(t), '_blank');
-      }, i * 400);
-    });
+    blockQueue = state.tasks.filter(function(t) { return t.today && !t.done && t.todayHours > 0; });
+    blockIndex = 0;
+    updateBlockUI();
+  };
+
+  document.getElementById('block-next-btn').onclick = function() {
+    if (blockIndex < blockQueue.length) {
+      window.open(calUrl(blockQueue[blockIndex]), '_blank');
+      blockIndex++;
+      updateBlockUI();
+    }
+  };
+
+  document.getElementById('block-skip-btn').onclick = function() {
+    blockIndex++;
+    updateBlockUI();
   };
 
   // Initiative manager
@@ -783,4 +834,4 @@
 
   render();
 })();
-</script><!-- deployed 2026-11-01T16:55:13Z -->
+</script>
