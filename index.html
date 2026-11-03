@@ -396,8 +396,8 @@
 <div class="block-all-row" id="block-all-row" hidden>
   <button class="block-all-btn" id="block-all-btn">&#128197; Block all on calendar</button>
   <span class="block-progress" id="block-progress" hidden></span>
-  <button class="block-next-btn" id="block-next-btn" hidden>Open next</button>
-  <button class="block-skip-btn" id="block-skip-btn" hidden>Skip</button>
+  <button class="block-next-btn" id="block-next-btn" hidden></button>
+  <button class="block-skip-btn" id="block-reset-btn" hidden>Cancel</button>
 </div>
 <div class="task-list" id="today-tasks"></div>
 
@@ -796,39 +796,45 @@
   document.getElementById('add-btn').onclick = addTask;
   document.getElementById('new-task').onkeydown = function(e) { if (e.key === 'Enter') addTask(); };
 
-  // Block all focus time — step-by-step flow
+  // Block all focus time — one click per task, no skipping confusion
   var blockQueue = [];
   var blockIndex = 0;
 
   function updateBlockUI() {
     var prog = document.getElementById('block-progress');
     var nextBtn = document.getElementById('block-next-btn');
-    var skipBtn = document.getElementById('block-skip-btn');
+    var resetBtn = document.getElementById('block-reset-btn');
     var mainBtn = document.getElementById('block-all-btn');
     if (blockIndex < blockQueue.length) {
       var t = blockQueue[blockIndex];
       var slot = taskTimeSlot(t);
-      prog.textContent = (blockIndex + 1) + '/' + blockQueue.length + ': ' + t.title + ' (' + slot.label + ')';
+      prog.textContent = (blockIndex + 1) + '/' + blockQueue.length;
       prog.hidden = false;
-      nextBtn.textContent = 'Book ' + slot.label;
+      nextBtn.textContent = 'Book: ' + t.title.slice(0, 30) + (t.title.length > 30 ? '…' : '') + ' (' + slot.label + ')';
       nextBtn.hidden = false;
-      skipBtn.hidden = false;
+      resetBtn.hidden = false;
       mainBtn.hidden = true;
     } else {
-      prog.textContent = blockQueue.length > 0 ? 'All ' + blockQueue.length + ' blocked!' : '';
-      prog.hidden = blockQueue.length === 0;
+      var booked = blockQueue.length;
+      prog.textContent = booked > 0 ? 'Done — ' + booked + ' events created' : '';
+      prog.hidden = booked === 0;
       nextBtn.hidden = true;
-      skipBtn.hidden = true;
+      resetBtn.hidden = true;
       mainBtn.hidden = false;
       blockQueue = [];
       blockIndex = 0;
-      if (prog.textContent) setTimeout(function() { prog.hidden = true; }, 3000);
+      if (prog.textContent) setTimeout(function() { prog.hidden = true; }, 4000);
     }
   }
 
   document.getElementById('block-all-btn').onclick = function() {
     blockQueue = state.tasks.filter(function(t) { return t.today && !t.done && t.todayHours > 0; });
     blockIndex = 0;
+    if (blockQueue.length === 1) {
+      window.open(calUrl(blockQueue[0]), '_blank');
+      blockQueue = [];
+      return;
+    }
     updateBlockUI();
   };
 
@@ -840,9 +846,13 @@
     }
   };
 
-  document.getElementById('block-skip-btn').onclick = function() {
-    blockIndex++;
-    updateBlockUI();
+  document.getElementById('block-reset-btn').onclick = function() {
+    blockQueue = [];
+    blockIndex = 0;
+    document.getElementById('block-progress').hidden = true;
+    document.getElementById('block-next-btn').hidden = true;
+    document.getElementById('block-reset-btn').hidden = true;
+    document.getElementById('block-all-btn').hidden = false;
   };
 
   // Initiative manager
